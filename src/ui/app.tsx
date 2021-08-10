@@ -61,7 +61,6 @@ export function App() {
         } else {
             setPolyjuiceAddress(undefined);
         }
-        setExistingContractAddress("0xc4AdA701d04e2261C91822d207F5BFc55E68ea5f");
     }, [accounts?.[0]]);
 
     useEffect(() => {
@@ -125,6 +124,9 @@ export function App() {
 
         setContract(_contract);
         setStoredValue(undefined);
+        _contract.getCandidatesCount(account);
+        _contract.getCandidate(0, account);
+        _contract.getCandidate(1, account);
     }
 
     async function setVote() {
@@ -203,6 +205,12 @@ export function App() {
                 onClick={() => setExistingContractAddress(existingContractIdInputValue)}
             >
                 Use existing contract
+            </button>
+
+            <button
+                onClick={() => setExistingContractAddress("0xc4AdA701d04e2261C91822d207F5BFc55E68ea5f")}
+            >
+                Load election
             </button>
             <br />
             <br />
