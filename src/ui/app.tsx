@@ -49,6 +49,7 @@ export function App() {
     const [deployTxHash, setDeployTxHash] = useState<string | undefined>();
     const [polyjuiceAddress, setPolyjuiceAddress] = useState<string | undefined>();
     const [transactionInProgress, setTransactionInProgress] = useState(false);
+    const [loadingData, setLoadingData] = useState(false);
     const toastId = React.useRef(null);
     const [newStoredNumberInputValue, setNewStoredNumberInputValue] = useState<
         number | undefined
@@ -86,6 +87,27 @@ export function App() {
         }
     }, [transactionInProgress, toastId.current]);
 
+    useEffect(() => {
+        if (loadingData && !toastId.current) {
+            toastId.current = toast.info(
+                'Loading data. Please wait...',
+                {
+                    position: 'top-right',
+                    autoClose: false,
+                    hideProgressBar: false,
+                    closeOnClick: false,
+                    pauseOnHover: true,
+                    draggable: true,
+                    progress: undefined,
+                    closeButton: false
+                }
+            );
+        } else if (!loadingData && toastId.current) {
+            toast.dismiss(toastId.current);
+            toastId.current = null;
+        }
+    }, [loadingData, toastId.current]);
+
     const account = accounts?.[0];
 
     async function deployContract() {
@@ -122,25 +144,39 @@ export function App() {
 
     async function setExistingContractAddress(contractAddress: string) {
         const _contract = new ElectionWrapper(web3);
-        _contract.useDeployed(contractAddress.trim());
 
-        setContract(_contract);
-        setStoredValue(undefined);
+        try {
+            setLoadingData(true);
+            _contract.useDeployed(contractAddress.trim());
 
-        const _hasVoted = await _contract.hasVoted(account);
-        setHasVoted(_hasVoted);
+            setContract(_contract);
+            setStoredValue(undefined);
 
-        const len = await _contract.getCandidatesCount(account);
-        const _candidates = [];
-        for (let i = 1 ; i <= len; i++) {
-            const _curr = await _contract.getCandidate(i, account);
-            const ethAmount = BigInt(await web3.eth.getBalance(_curr["donations"]));
-            _curr["donationAmount"] = ethAmount;
-            _candidates.push(_curr);
+            const _hasVoted = await _contract.hasVoted(account);
+            setHasVoted(_hasVoted);
+
+            const len = await _contract.getCandidatesCount(account);
+            const _candidates = [];
+            for (let i = 1 ; i <= len; i++) {   
+                const _curr = await _contract.getCandidate(i, account);
+                _candidates.push(_curr);
+            }
+            console.log("om");
+            console.log(_candidates);
+            setCandidates(_candidates);
+            toast(
+                'Successfully loaded data.',
+                { type: 'success' }
+            );
+        } catch (error) {
+            console.error(error);
+            toast.error(
+                'There was an error loading data. Please check developer console.'
+            );
+        } finally {
+            setLoadingData(false);
         }
-        console.log("om");
-        console.log(_candidates);
-        setCandidates(_candidates);
+        
         //getCandidates();
         
     }
@@ -187,18 +223,18 @@ export function App() {
 
     const CandidatesTable = () => (
         <>
+            <b>Candidates</b>
+            <br />
             <table class="table">
               <thead>
                 <tr>
                   <th scope="col">ID</th>
                   <th scope="col">Name</th>
                   <th scope="col">Votes</th>
-                  <th scope="col">Donations balance</th>
-                  <th scope="col">Donation address</th>
                 </tr>
               </thead>
               <tbody id="candidatesResults">
-              { candidates?.length>0?candidates.map(element=><tr><th>{element["id"]}</th><td>{element["name"]}</td><td>{element["voteCount"]}</td><td>0</td><td>{element["donations"]}</td></tr>):'no'}
+              { candidates?.length>0?candidates.map(element=><tr><th>{element["id"]}</th><td>{element["name"]}</td><td>{element["voteCount"]}</td></tr>):'no'}
 
 
                   
@@ -207,12 +243,6 @@ export function App() {
             <br></br>
             {!hasVoted? <VoteDropdown /> : <ThanksForVoting />}
             <hr />
-
-            <b>Donations</b>
-            <br />
-            <p>To donate to your candidate, send Ether to his donation address.</p>
-            <hr/>
-
         </>
     );
 
@@ -257,21 +287,6 @@ export function App() {
             <br />
             Nervos Layer 2 balance:{' '}
             <b>{l2Balance ? (l2Balance / 10n ** 8n).toString() : <LoadingIndicator />} CKB</b>
-            <br />
-            <br />
-            Deployed contract address: <b>{contract?.address || '-'}</b> <br />
-            Deploy transaction hash: <b>{deployTxHash || '-'}</b>
-            <br />
-            <hr />
-            <br />
-
-            <input
-                type="number"
-                onChange={e => setNewStoredNumberInputValue(parseInt(e.target.value, 10))}
-            />
-            <button onClick={setVote} disabled={!contract}>
-                Set new stored value
-            </button>
             <br />
             <hr />
             The contract is deployed on Nervos Layer 2 - Godwoken + Polyjuice. After each
