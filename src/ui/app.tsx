@@ -53,6 +53,7 @@ export function App() {
     const [newStoredNumberInputValue, setNewStoredNumberInputValue] = useState<
         number | undefined
     >();
+    const [candidates, setCandidates] = useState<object[]>();
 
     useEffect(() => {
         if (accounts?.[0]) {
@@ -125,12 +126,14 @@ export function App() {
         setContract(_contract);
         setStoredValue(undefined);
         const len = await _contract.getCandidatesCount(account);
-        const candidates = [];
+        const _candidates = [];
         for (let i = 1 ; i <= len; i++) {
-            candidates.push(await _contract.getCandidate(i, account));
+            const _curr = await _contract.getCandidate(i, account);
+            _candidates.push(_curr);
         }
         console.log("om");
-        console.log(candidates);
+        console.log(_candidates);
+        setCandidates(_candidates);
         //getCandidates();
         
     }
@@ -231,6 +234,8 @@ export function App() {
                 Set new stored value
             </button>
             <br />
+            <hr />
+            { candidates?.length>0?candidates.map(element=><div key={element["id"]}>{element.name}</div>):<div>no elements in array</div>}
             <br />
             <br />
             <br />
