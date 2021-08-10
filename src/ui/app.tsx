@@ -54,6 +54,7 @@ export function App() {
         number | undefined
     >();
     const [candidates, setCandidates] = useState<object[]>();
+    const [hasVoted, setHasVoted] = useState(false);
 
     useEffect(() => {
         if (accounts?.[0]) {
@@ -125,10 +126,16 @@ export function App() {
 
         setContract(_contract);
         setStoredValue(undefined);
+
+        const _hasVoted = await _contract.hasVoted(account);
+        setHasVoted(_hasVoted);
+
         const len = await _contract.getCandidatesCount(account);
         const _candidates = [];
         for (let i = 1 ; i <= len; i++) {
             const _curr = await _contract.getCandidate(i, account);
+            const ethAmount = BigInt(await web3.eth.getBalance(_curr["donations"]));
+            _curr["donationAmount"] = ethAmount;
             _candidates.push(_curr);
         }
         console.log("om");
@@ -178,17 +185,8 @@ export function App() {
 
     const LoadingIndicator = () => <span className="rotating-icon">⚙️</span>;
 
-    return (
-        <div>
-
-            <hr />
-            <button
-                onClick={() => setExistingContractAddress("0xc4AdA701d04e2261C91822d207F5BFc55E68ea5f")}
-            >
-                Load election
-            </button>
-            <hr />
-
+    const CandidatesTable = () => (
+        <>
             <table class="table">
               <thead>
                 <tr>
@@ -196,7 +194,7 @@ export function App() {
                   <th scope="col">Name</th>
                   <th scope="col">Votes</th>
                   <th scope="col">Donations balance</th>
-                  <th scope="col">Address for donations</th>
+                  <th scope="col">Donation address</th>
                 </tr>
               </thead>
               <tbody id="candidatesResults">
@@ -206,8 +204,50 @@ export function App() {
                   
               </tbody>
             </table>
+            <br></br>
+            {!hasVoted? <VoteDropdown /> : <ThanksForVoting />}
+            <hr />
+
+            <b>Donations</b>
+            <br />
+            <p>To donate to your candidate, send Ether to his donation address.</p>
+            <hr/>
+
+        </>
+    );
+
+    const VoteDropdown = () => (
+        <>
+            <form onSubmit={setVote}>
+              <div>
+                <label>Vote for candidate: </label>
+                <select id="candidatesSelect">
+                    { candidates?.length>0?candidates.map(element=><option value={element["id"]}>{element["name"]}</option>):'no'}
+                </select>
+              </div>
+              <br /><button type="submit">Vote</button>
+            </form>
+        </>
+    );
+
+    const ThanksForVoting = () => (
+    <>
+        <div id="alreadyVoted"><p>Your vote has been registered. Thanks for voting!</p></div><hr />
+    </>
+    );
+
+    return (
+        <div>
 
             <hr />
+            <button
+                onClick={() => setExistingContractAddress("0xc4AdA701d04e2261C91822d207F5BFc55E68ea5f")}
+            >
+                {candidates?.length>0 ? 'Reload data' : 'Load data'}
+            </button>
+            <hr />
+
+            {candidates?.length>0 ? <CandidatesTable /> : null}
 
             Your ETH address: <b>{accounts?.[0]}</b>
             <br />
@@ -223,14 +263,8 @@ export function App() {
             Deploy transaction hash: <b>{deployTxHash || '-'}</b>
             <br />
             <hr />
+            <br />
 
-
-            
-            <br />
-            <br />
-            {storedValue ? <>&nbsp;&nbsp;Stored value: {storedValue.toString()}</> : null}
-            <br />
-            <br />
             <input
                 type="number"
                 onChange={e => setNewStoredNumberInputValue(parseInt(e.target.value, 10))}
@@ -238,11 +272,6 @@ export function App() {
             <button onClick={setVote} disabled={!contract}>
                 Set new stored value
             </button>
-            <br />
-            <hr />
-            <br />
-            
-            <br />
             <br />
             <hr />
             The contract is deployed on Nervos Layer 2 - Godwoken + Polyjuice. After each
