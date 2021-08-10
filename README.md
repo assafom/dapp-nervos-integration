@@ -1,4 +1,4 @@
-# Blockchain workshop
+# Election dapp - Nervos integration
 
 Start UI:
 
