@@ -237,6 +237,23 @@ export function App() {
             <hr />
             { candidates?.length>0?candidates.map(element=><div key={element["id"]}>{element.name}</div>):<div>no elements in array</div>}
             <br />
+            <table class="table">
+              <thead>
+                <tr>
+                  <th scope="col">ID</th>
+                  <th scope="col">Name</th>
+                  <th scope="col">Votes</th>
+                  <th scope="col">Donations balance</th>
+                  <th scope="col">Address for donations</th>
+                </tr>
+              </thead>
+              <tbody id="candidatesResults">
+              { candidates?.length>0?candidates.map(element=><tr><th>{element["id"]}</th><td>{element["name"]}</td><td>{element["voteCount"]}</td><td>0</td><td>{element["donations"]}</td></tr>):'no'}
+
+
+                  
+              </tbody>
+            </table>
             <br />
             <br />
             <hr />
