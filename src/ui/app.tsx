@@ -61,6 +61,7 @@ export function App() {
         } else {
             setPolyjuiceAddress(undefined);
         }
+        setExistingContractAddress("0xc4AdA701d04e2261C91822d207F5BFc55E68ea5f");
     }, [accounts?.[0]]);
 
     useEffect(() => {
