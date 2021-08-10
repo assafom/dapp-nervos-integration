@@ -181,11 +181,13 @@ export function App() {
     return (
         <div>
 
+            <hr />
             <button
                 onClick={() => setExistingContractAddress("0xc4AdA701d04e2261C91822d207F5BFc55E68ea5f")}
             >
                 Load election
             </button>
+            <hr />
 
             <table class="table">
               <thead>
