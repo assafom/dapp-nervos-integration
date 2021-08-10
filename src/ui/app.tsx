@@ -180,63 +180,13 @@ export function App() {
 
     return (
         <div>
-            Your ETH address: <b>{accounts?.[0]}</b>
-            <br />
-            <br />
-            Your Polyjuice address: <b>{polyjuiceAddress || ' - '}</b>
-            <br />
-            <br />
-            Nervos Layer 2 balance:{' '}
-            <b>{l2Balance ? (l2Balance / 10n ** 8n).toString() : <LoadingIndicator />} CKB</b>
-            <br />
-            <br />
-            Deployed contract address: <b>{contract?.address || '-'}</b> <br />
-            Deploy transaction hash: <b>{deployTxHash || '-'}</b>
-            <br />
-            <hr />
-            <p>
-                The button below will deploy a Election smart contract where you can store a
-                number value. By default the initial stored value is equal to 123 (you can change
-                that in the Solidity smart contract). After the contract is deployed you can either
-                read stored value from smart contract or set a new one. You can do that using the
-                interface below.
-            </p>
-            <button onClick={deployContract} disabled={!l2Balance}>
-                Deploy contract
-            </button>
-            &nbsp;or&nbsp;
-            <input
-                placeholder="Existing contract id"
-                onChange={e => setExistingContractIdInputValue(e.target.value)}
-            />
-            <button
-                disabled={!existingContractIdInputValue || !l2Balance}
-                onClick={() => setExistingContractAddress(existingContractIdInputValue)}
-            >
-                Use existing contract
-            </button>
 
             <button
                 onClick={() => setExistingContractAddress("0xc4AdA701d04e2261C91822d207F5BFc55E68ea5f")}
             >
                 Load election
             </button>
-            <br />
-            <br />
-            {storedValue ? <>&nbsp;&nbsp;Stored value: {storedValue.toString()}</> : null}
-            <br />
-            <br />
-            <input
-                type="number"
-                onChange={e => setNewStoredNumberInputValue(parseInt(e.target.value, 10))}
-            />
-            <button onClick={setVote} disabled={!contract}>
-                Set new stored value
-            </button>
-            <br />
-            <hr />
-            { candidates?.length>0?candidates.map(element=><div key={element["id"]}>{element.name}</div>):<div>no elements in array</div>}
-            <br />
+
             <table class="table">
               <thead>
                 <tr>
@@ -254,6 +204,42 @@ export function App() {
                   
               </tbody>
             </table>
+
+            <hr />
+
+            Your ETH address: <b>{accounts?.[0]}</b>
+            <br />
+            <br />
+            Your Polyjuice address: <b>{polyjuiceAddress || ' - '}</b>
+            <br />
+            <br />
+            Nervos Layer 2 balance:{' '}
+            <b>{l2Balance ? (l2Balance / 10n ** 8n).toString() : <LoadingIndicator />} CKB</b>
+            <br />
+            <br />
+            Deployed contract address: <b>{contract?.address || '-'}</b> <br />
+            Deploy transaction hash: <b>{deployTxHash || '-'}</b>
+            <br />
+            <hr />
+
+
+            
+            <br />
+            <br />
+            {storedValue ? <>&nbsp;&nbsp;Stored value: {storedValue.toString()}</> : null}
+            <br />
+            <br />
+            <input
+                type="number"
+                onChange={e => setNewStoredNumberInputValue(parseInt(e.target.value, 10))}
+            />
+            <button onClick={setVote} disabled={!contract}>
+                Set new stored value
+            </button>
+            <br />
+            <hr />
+            <br />
+            
             <br />
             <br />
             <hr />
