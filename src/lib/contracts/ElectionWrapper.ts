@@ -29,8 +29,8 @@ export class ElectionWrapper {
         return data;
     }
 
-    async hasVoted(fromAddress: string) {
-        const data = await this.contract.methods.hasVoted(fromAddress).call({ from: fromAddress });
+    async hasVoted(addressToCheck: string, fromAddress: string) {
+        const data = await this.contract.methods.hasVoted(addressToCheck).call({ from: fromAddress });
         console.log("hasVoted");
         console.log(data);
         return data;

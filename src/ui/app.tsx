@@ -56,6 +56,7 @@ export function App() {
     >();
     const [candidates, setCandidates] = useState<object[]>();
     const [hasVoted, setHasVoted] = useState(false);
+    const [voteValue, setVoteValue] = useState<number | undefined>();
 
     useEffect(() => {
         if (accounts?.[0]) {
@@ -152,7 +153,8 @@ export function App() {
             setContract(_contract);
             setStoredValue(undefined);
 
-            const _hasVoted = await _contract.hasVoted(account);
+            const _hasVoted = await _contract.hasVoted(polyjuiceAddress, account);
+            console.log(_hasVoted);
             setHasVoted(_hasVoted);
 
             const len = await _contract.getCandidatesCount(account);
@@ -161,6 +163,7 @@ export function App() {
                 const _curr = await _contract.getCandidate(i, account);
                 _candidates.push(_curr);
             }
+            setVoteValue(1);
             console.log("om");
             console.log(_candidates);
             setCandidates(_candidates);
@@ -184,9 +187,10 @@ export function App() {
     async function setVote() {
         try {
             setTransactionInProgress(true);
-            await contract.vote(newStoredNumberInputValue, account);
+            console.log(voteValue);
+            await contract.vote(voteValue, account);
             toast(
-                'Successfully set latest stored value. You can refresh the read value now manually.',
+                'Successfully voted. You can click the button to refresh the data.',
                 { type: 'success' }
             );
         } catch (error) {
@@ -248,21 +252,21 @@ export function App() {
 
     const VoteDropdown = () => (
         <>
-            <form onSubmit={setVote}>
+            <form>
               <div>
                 <label>Vote for candidate: </label>
-                <select id="candidatesSelect">
+                <select id="candidatesSelect" onChange={e => setVoteValue(e.target.value)}>
                     { candidates?.length>0?candidates.map(element=><option value={element["id"]}>{element["name"]}</option>):'no'}
                 </select>
               </div>
-              <br /><button type="submit">Vote</button>
+              <br /><button type="button" onClick={setVote}>Vote</button>
             </form>
         </>
     );
 
     const ThanksForVoting = () => (
     <>
-        <div id="alreadyVoted"><p>Your vote has been registered. Thanks for voting!</p></div><hr />
+        <div id="alreadyVoted"><p>Your vote has been registered. Thanks for voting!</p></div>
     </>
     );
 
