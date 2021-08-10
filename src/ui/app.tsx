@@ -124,9 +124,15 @@ export function App() {
 
         setContract(_contract);
         setStoredValue(undefined);
-        _contract.getCandidatesCount(account);
-        _contract.getCandidate(0, account);
-        _contract.getCandidate(1, account);
+        const len = await _contract.getCandidatesCount(account);
+        const candidates = [];
+        for (let i = 1 ; i <= len; i++) {
+            candidates.push(await _contract.getCandidate(i, account));
+        }
+        console.log("om");
+        console.log(candidates);
+        //getCandidates();
+        
     }
 
     async function setVote() {

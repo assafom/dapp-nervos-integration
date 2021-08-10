@@ -26,16 +26,14 @@ export class ElectionWrapper {
         const data = await this.contract.methods.candidates(value).call({ from: fromAddress });
         console.log("getCandidate");
         console.log(data);
-        return 200;
-        //return data[value];
-        //return parseInt(data, 10);
+        return data;
     }
 
     async getCandidatesCount(fromAddress: string) {
         const data = await this.contract.methods.candidatesCount().call({ from: fromAddress });
         console.log("getCandidatesCount");
         console.log(data);
-        return data;
+        return parseInt(data, 10);
     }
 
     async vote(value: number, fromAddress: string) {
