@@ -122,6 +122,8 @@ export function App() {
 
             setDeployTxHash(transactionHash);
             setExistingContractAddress(_contract.address);
+            console.log(transactionHash);
+            console.log(_contract.address);
             toast(
                 'Successfully deployed a smart-contract. You can now proceed to get or set the value in a smart contract.',
                 { type: 'success' }
@@ -167,6 +169,8 @@ export function App() {
             console.log("om");
             console.log(_candidates);
             setCandidates(_candidates);
+            const _l2Balance = BigInt(await web3.eth.getBalance(account));
+            setL2Balance(_l2Balance);
             toast(
                 'Successfully loaded data.',
                 { type: 'success' }
@@ -275,7 +279,7 @@ export function App() {
 
             <hr />
             <button
-                onClick={() => setExistingContractAddress("0xc4AdA701d04e2261C91822d207F5BFc55E68ea5f")}
+                onClick={() => setExistingContractAddress("0xd5A32a5c1d213bb19702DAacac642899746bEa1D")}
             >
                 {candidates?.length>0 ? 'Reload data' : 'Load data'}
             </button>
@@ -287,10 +291,6 @@ export function App() {
             <br />
             <br />
             Your Polyjuice address: <b>{polyjuiceAddress || ' - '}</b>
-            <br />
-            <br />
-            Nervos Layer 2 balance:{' '}
-            <b>{l2Balance ? (l2Balance / 10n ** 8n).toString() : <LoadingIndicator />} CKB</b>
             <br />
             <hr />
             The contract is deployed on Nervos Layer 2 - Godwoken + Polyjuice. After each
