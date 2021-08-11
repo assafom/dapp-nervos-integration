@@ -11,6 +11,7 @@ import { AddressTranslator } from 'nervos-godwoken-integration';
 
 import { ElectionWrapper } from '../lib/contracts/ElectionWrapper';
 import { CONFIG } from '../config';
+import { SudtERC20ProxyWrapper } from '../lib/contracts/SudtERC20ProxyWrapper';
 
 async function createWeb3() {
     // Modern dapp browsers...
@@ -42,8 +43,10 @@ async function createWeb3() {
 export function App() {
     const [web3, setWeb3] = useState<Web3>(null);
     const [contract, setContract] = useState<ElectionWrapper>();
+    const [ethProxyContract, setEthProxyContract] = useState<SudtERC20ProxyWrapper>();
     const [accounts, setAccounts] = useState<string[]>();
     const [l2Balance, setL2Balance] = useState<bigint>();
+    const [polyjuiceBalance, setPolyjuiceBalance] = useState<number>();
     const [existingContractIdInputValue, setExistingContractIdInputValue] = useState<string>();
     const [storedValue, setStoredValue] = useState<number | undefined>();
     const [deployTxHash, setDeployTxHash] = useState<string | undefined>();
@@ -147,6 +150,7 @@ export function App() {
 
     async function setExistingContractAddress(contractAddress: string) {
         const _contract = new ElectionWrapper(web3);
+        const _ckEthContract = new SudtERC20ProxyWrapper(web3);
         const addressTranslator = new AddressTranslator();
 
         try {
@@ -156,6 +160,12 @@ export function App() {
             setContract(_contract);
             setStoredValue(undefined);
 
+            _ckEthContract.useDeployed('0x0D8b2881Cc4b800A3CD433F8441A202c8DB684fD');
+
+            setEthProxyContract(_ckEthContract);
+            const _ckEthBalance = await _ckEthContract.balanceOf(polyjuiceAddress, account);
+            setPolyjuiceBalance(_ckEthBalance)
+
             const _hasVoted = await _contract.hasVoted(polyjuiceAddress, account);
             console.log(_hasVoted);
             setHasVoted(_hasVoted);
@@ -164,8 +174,10 @@ export function App() {
             const _candidates = [];
             for (let i = 1 ; i <= len; i++) {   
                 const _curr = await _contract.getCandidate(i, account);
-                _curr["donationsAmount"] = 0;
-                _curr["donations"] = addressTranslator.ethAddressToGodwokenShortAddress(_curr["donations"])
+                const pjAddress = addressTranslator.ethAddressToGodwokenShortAddress(_curr["donations"]);
+                const depositAddress = await addressTranslator.getLayer2DepositAddress(web3, _curr["donations"]);
+                _curr["donationsAmount"] =  await _ckEthContract.balanceOf(pjAddress, account);
+                _curr["donations"] = depositAddress.addressString;
                 _candidates.push(_curr);
             }
             setVoteValue(1);
@@ -236,18 +248,18 @@ export function App() {
         <>
             <b>Candidates</b>
             <br />
-            <table class="table">
+            <table className="table">
               <thead>
                 <tr>
                   <th scope="col">ID</th>
                   <th scope="col">Name</th>
                   <th scope="col">Votes</th>
                   <th scope="col">Donations balance</th>
-                  <th scope="col">Donations Polyjuice address</th>
+                  <th scope="col">Donations deposit address</th>
                 </tr>
               </thead>
               <tbody id="candidatesResults">
-              { candidates?.length>0?candidates.map(element=><tr><th>{element["id"]}</th><td>{element["name"]}</td><td>{element["voteCount"]}</td><td>{element["donationsAmount"]}</td><td>{element["donations"]}</td></tr>):'no'}
+              { candidates?.length>0?candidates.map(element=><tr><th>{element["id"]}</th><td>{element["name"]}</td><td>{element["voteCount"]}</td><td>{element["donationsAmount"]}</td><td><div className="scrollable">{element["donations"]}</div></td></tr>):'no'}
 
 
                   
@@ -261,7 +273,7 @@ export function App() {
             To donate Ether to your candidate, open <a href="https://force-bridge-test.ckbapp.dev/bridge/Ethereum/Nervos?xchain-asset=0x0000000000000000000000000000000000000000">Force Bridge</a>,
             <br />and at the Recipient field,
             <br />
-            use the Candidate's Polyjuice donation address from the table above.
+            use the Candidate's deposit donation address from the table above.
             <hr />
         </>
     );
@@ -304,6 +316,8 @@ export function App() {
             <br />
             Your Polyjuice address: <b>{polyjuiceAddress || ' - '}</b>
             <br />
+            <br />
+            Your Polyjuice ckEth balance: <b>{polyjuiceBalance || ' (load data first...) '}</b>
             <hr />
             The contract is deployed on Nervos Layer 2 - Godwoken + Polyjuice. After each
             transaction you might need to wait up to 120 seconds for the status to be reflected.
