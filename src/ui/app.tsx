@@ -51,6 +51,7 @@ export function App() {
     const [storedValue, setStoredValue] = useState<number | undefined>();
     const [deployTxHash, setDeployTxHash] = useState<string | undefined>();
     const [polyjuiceAddress, setPolyjuiceAddress] = useState<string | undefined>();
+    const [layer1DepositAddress, setLayer1DepositAddress] = useState<string | undefined>();
     const [transactionInProgress, setTransactionInProgress] = useState(false);
     const [loadingData, setLoadingData] = useState(false);
     const toastId = React.useRef(null);
@@ -165,6 +166,8 @@ export function App() {
             setEthProxyContract(_ckEthContract);
             const _ckEthBalance = await _ckEthContract.balanceOf(polyjuiceAddress, account);
             setPolyjuiceBalance(_ckEthBalance)
+            const _userDepAddress = await addressTranslator.getLayer2DepositAddress(web3, account);
+            setLayer1DepositAddress(_userDepAddress.addressString);
 
             const _hasVoted = await _contract.hasVoted(polyjuiceAddress, account);
             console.log(_hasVoted);
@@ -255,11 +258,10 @@ export function App() {
                   <th scope="col">Name</th>
                   <th scope="col">Votes</th>
                   <th scope="col">Donations balance</th>
-                  <th scope="col">Donations deposit address</th>
                 </tr>
               </thead>
               <tbody id="candidatesResults">
-              { candidates?.length>0?candidates.map(element=><tr><th>{element["id"]}</th><td>{element["name"]}</td><td>{element["voteCount"]}</td><td>{element["donationsAmount"]}</td><td><div className="scrollable">{element["donations"]}</div></td></tr>):'no'}
+              { candidates?.length>0?candidates.map(element=><tr><th>{element["id"]}</th><td>{element["name"]}</td><td>{element["voteCount"]}</td><td>{element["donationsAmount"]}</td></tr>):'no'}
 
 
                   
@@ -268,12 +270,14 @@ export function App() {
             <br></br>
             {!hasVoted? <VoteDropdown /> : <ThanksForVoting />}
             <hr />
-            <b>Donations</b>
-            <br />
-            To donate Ether to your candidate, open <a href="https://force-bridge-test.ckbapp.dev/bridge/Ethereum/Nervos?xchain-asset=0x0000000000000000000000000000000000000000">Force Bridge</a>,
-            <br />and at the Recipient field,
-            <br />
-            use the Candidate's deposit donation address from the table above.
+            <div>
+                <b>Donations</b>
+                <br />
+                To donate Ether to your candidate, open <a href="https://force-bridge-test.ckbapp.dev/bridge/Ethereum/Nervos?xchain-asset=0x0000000000000000000000000000000000000000">Force Bridge</a>,
+                <br />and at the Recipient field, use the Candidate's deposit donation from below:
+                <br /><br />
+                { candidates?.length>0?candidates.map(element=><div className="scrollable"><b>{element["name"]}:</b> {element["donations"]}<br/></div>):'no'}
+            </div>
             <hr />
         </>
     );
@@ -318,6 +322,9 @@ export function App() {
             <br />
             <br />
             Your Polyjuice ckEth balance: <b>{polyjuiceBalance || ' (load data first...) '}</b>
+            <br />
+            <br />
+            Your layer 2 deposit address on layer 1: <div className="scrollable">{layer1DepositAddress || ' (load data first...) '}</div>
             <hr />
             The contract is deployed on Nervos Layer 2 - Godwoken + Polyjuice. After each
             transaction you might need to wait up to 120 seconds for the status to be reflected.
