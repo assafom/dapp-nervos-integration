@@ -147,6 +147,7 @@ export function App() {
 
     async function setExistingContractAddress(contractAddress: string) {
         const _contract = new ElectionWrapper(web3);
+        const addressTranslator = new AddressTranslator();
 
         try {
             setLoadingData(true);
@@ -163,6 +164,8 @@ export function App() {
             const _candidates = [];
             for (let i = 1 ; i <= len; i++) {   
                 const _curr = await _contract.getCandidate(i, account);
+                _curr["donationsAmount"] = 0;
+                _curr["donations"] = addressTranslator.ethAddressToGodwokenShortAddress(_curr["donations"])
                 _candidates.push(_curr);
             }
             setVoteValue(1);
@@ -239,10 +242,12 @@ export function App() {
                   <th scope="col">ID</th>
                   <th scope="col">Name</th>
                   <th scope="col">Votes</th>
+                  <th scope="col">Donations balance</th>
+                  <th scope="col">Donations Polyjuice address</th>
                 </tr>
               </thead>
               <tbody id="candidatesResults">
-              { candidates?.length>0?candidates.map(element=><tr><th>{element["id"]}</th><td>{element["name"]}</td><td>{element["voteCount"]}</td></tr>):'no'}
+              { candidates?.length>0?candidates.map(element=><tr><th>{element["id"]}</th><td>{element["name"]}</td><td>{element["voteCount"]}</td><td>{element["donationsAmount"]}</td><td>{element["donations"]}</td></tr>):'no'}
 
 
                   
@@ -250,6 +255,13 @@ export function App() {
             </table>
             <br></br>
             {!hasVoted? <VoteDropdown /> : <ThanksForVoting />}
+            <hr />
+            <b>Donations</b>
+            <br />
+            To donate Ether to your candidate, open <a href="https://force-bridge-test.ckbapp.dev/bridge/Ethereum/Nervos?xchain-asset=0x0000000000000000000000000000000000000000">Force Bridge</a>,
+            <br />and at the Recipient field,
+            <br />
+            use the Candidate's Polyjuice donation address from the table above.
             <hr />
         </>
     );
